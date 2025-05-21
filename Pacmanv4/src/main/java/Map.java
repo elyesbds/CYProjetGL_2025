@@ -1,9 +1,12 @@
 import java.awt.*;
 import java.util.HashSet;
 import java.util.Random;
-
 import javax.swing.*;
 
+/**
+ * Represents the game map containing all game entities and responsible for rendering.
+ * This class extends JPanel to provide the visual representation of the game.
+ */
 @SuppressWarnings("serial")
 public class Map extends JPanel {
 
@@ -61,6 +64,10 @@ public class Map extends JPanel {
             "XXXXXXXXXXXXXXXXXXX"
     };
 
+    /**
+     * Constructs a new Map instance.
+     * Initializes the map size, loads images, and sets up the game map.
+     */
     Map(){
         setPreferredSize(new Dimension(width, height));
         setBackground(Color.BLACK);
@@ -86,15 +93,14 @@ public class Map extends JPanel {
         loadMap();
     }
 
+    /**
+     * Loads the game map based on the current level.
+     * Creates all game entities (walls, foods, ghosts, pacman) according to the tile map.
+     */
     public void loadMap(){
         walls = new HashSet<Wall>();
         foods = new HashSet<Food>();
         ghosts = new HashSet<Ghost>();
-        
-        switch(this.level) {
-        case(1):
-        	
-        }
 
         for(int r=0; r < rows; r++){
             for(int c=0; c < cols; c++){
@@ -106,34 +112,34 @@ public class Map extends JPanel {
                 
                 switch(this.level) {
                 case(0):
-                	break;
+                    break;
                 case(1):
-                	if(r==1 && c==16) {
-                		tileMapChar = 'c';
-                	}
-                	break;
+                    if(r==1 && c==16) {
+                        tileMapChar = 'c';
+                    }
+                    break;
                 case(2):
-                	if(r==3 && c==2) {
-                		tileMapChar = 's';
-                	}
-                	break;
+                    if(r==3 && c==2) {
+                        tileMapChar = 's';
+                    }
+                    break;
                 case(3):
-                	if(r==20 && c==16) {
-                		tileMapChar = 'v';
-                	}
-                	break;
+                    if(r==20 && c==16) {
+                        tileMapChar = 'v';
+                    }
+                    break;
                 case(4):
-                	if(r==15 && c==1) {
-                		tileMapChar = 'a';
-                	}
-                	break;
+                    if(r==15 && c==1) {
+                        tileMapChar = 'a';
+                    }
+                    break;
                 case(5):
-                	if(r==9 && c==7) {
-                		tileMapChar = 'm';
-                	}
-                	break;
+                    if(r==9 && c==7) {
+                        tileMapChar = 'm';
+                    }
+                    break;
                 default:
-                	break;
+                    break;
                 }
 
                 if(tileMapChar == 'X'){
@@ -168,7 +174,7 @@ public class Map extends JPanel {
                     Food food = new Food(appleImage,x,y,tileSize,tileSize,"apple",500);
                     foods.add(food);
                 }
-                else if (tileMapChar == 'v'){ //o deja pris, orange
+                else if (tileMapChar == 'v'){ //o already used for orange ghost
                     Food food = new Food(orangeImage,x,y,tileSize,tileSize,"orange",700);
                     foods.add(food);
                 }
@@ -197,6 +203,9 @@ public class Map extends JPanel {
         }
     }
 
+    /**
+     * Resets positions of all mobile entities (pacman and ghosts) to their starting positions.
+     */
     public void resetPositions(){
         pacman.reset();
         pacman.setVelocityX(0);
@@ -207,11 +216,22 @@ public class Map extends JPanel {
         }
     }
 
+    /**
+     * Overrides the paintComponent method to provide custom rendering.
+     *
+     * @param g The Graphics context to paint on
+     */
     @Override
     public void paintComponent(Graphics g){
         super.paintComponent(g);
         draw(g);
     }
+
+    /**
+     * Renders all game entities on the screen.
+     *
+     * @param g The Graphics context to paint on
+     */
 
     public void draw(Graphics g){
         g.drawImage(pacman.getImage(), pacman.getX(), pacman.getY(), pacman.getWidth(), pacman.getHeight(), null);
@@ -256,19 +276,35 @@ public class Map extends JPanel {
             g.drawString("Lives: " + String.valueOf(pacman.getLives()) + "   Score: " + String.valueOf(pacman.getScore()), tileSize/2, tileSize/2+8);
         }
     }
-
+    /***
+     * Gets the numbers of rows in the map
+     * @return numbers of rows
+     */
 	public int getRows() {
 		return rows;
 	}
 
+	/***
+	 * Set the amount of rows
+	 * @param rows Amount of rows
+	 */
 	public void setRows(int rows) {
 		this.rows = rows;
 	}
 
+	/***
+	 * Gets the amount of columns
+	 * 
+	 * @return cols The amount of columns
+	 */
 	public int getCols() {
 		return cols;
 	}
 
+	/***
+	 *  Set the amount of columns
+	 * @param cols The amount of columns
+	 */
 	public void setCols(int cols) {
 		this.cols = cols;
 	}
