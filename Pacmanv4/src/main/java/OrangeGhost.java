@@ -13,7 +13,7 @@ public class OrangeGhost extends Ghost{
     	
     	super.setFrameCounter(super.getFrameCounter() + 1);
 
-    	if (super.getFrameCounter() == super.getTargetUpdateInterval()){
+    	if (super.getFrameCounter() == super.getChangeDirectionInterval()){
     		char newDirection = super.getDirections()[random.nextInt(4)];
             this.updateDirection(newDirection);
             super.setFrameCounter(0);

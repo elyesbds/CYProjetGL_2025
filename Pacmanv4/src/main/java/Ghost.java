@@ -42,6 +42,9 @@ public abstract class Ghost extends MobileEntity implements Mobile{
 
         double speedMultiplier = this.isInTunnel() ? 0.75 : 1.0;
         
+        int oldX = super.getX();
+        int oldY = super.getY();
+        
         super.setX((int) (super.getX()+super.getVelocityX()*speedMultiplier)); //forcer l'entier
         super.setY((int) (super.getY()+super.getVelocityY()*speedMultiplier));
 
@@ -52,18 +55,31 @@ public abstract class Ghost extends MobileEntity implements Mobile{
             super.setX(0);
         }
 
+        boolean hasCollision = false;
         for (Wall wall : super.getMap().getWalls()){
             if(collision(this, wall)){
-            	super.setX((int) (super.getVelocityX() * speedMultiplier));
-            	super.setY((int) (super.getVelocityY() * speedMultiplier));
-                
-                handleWallCollision();
+                hasCollision = true;
                 break;
+            }
+        }
+        
+        if(hasCollision){
+            // Restauration des coordonnées précédentes en cas de collision
+            super.setX(oldX);
+            super.setY(oldY);
+            
+            // Traitement spécifique de la collision
+            if(this.isScared){
+                char newDirection = directions[random.nextInt(4)];
+                this.updateDirection(newDirection);
+            } else {
+                handleWallCollision();
             }
         }
 
         if(collision(this, super.getMap().getPacman())){
             if(this.isScared){
+            	System.out.println("Collision fantome pacman en mode peur");
             	super.setX(super.getStartX());
             	super.setY(super.getStartY());
                 super.getMap().getPacman().setScore(super.getMap().getPacman().getScore()+50);
@@ -110,18 +126,18 @@ public abstract class Ghost extends MobileEntity implements Mobile{
 
     protected void scaredMove(){
         frameCounter++;
-            scaredTimer ++;
+        scaredTimer ++;
 
-            if (frameCounter == changeDirectionInterval){
-                char newDirection = directions[random.nextInt(4)];
-                this.updateDirection(newDirection);
-                frameCounter = 0;
-            }else if(super.getY() == super.getMap().getTileSize()*9 && super.getDirection() != 'U' && super.getDirection() != 'D'){
-                this.updateDirection('U');
+        if (frameCounter == changeDirectionInterval){
+            char newDirection = directions[random.nextInt(4)];
+            this.updateDirection(newDirection);
+            frameCounter = 0;
+        }else if(super.getY() == super.getMap().getTileSize()*9 && super.getDirection() != 'U' && super.getDirection() != 'D'){
+            this.updateDirection('U');
             }
-            if(scaredTimer == endScaredTimer){
-                this.isScared = false;
-                this.setImage(this.realImage);
+        if(scaredTimer == endScaredTimer){
+            this.isScared = false;
+            this.setImage(this.realImage);
             }
     }
 

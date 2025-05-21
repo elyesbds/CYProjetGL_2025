@@ -7,7 +7,7 @@ public class Map extends JPanel {
 
     private int rows = 21;
     private int cols = 19;
-    private int tileSize = 64;
+    private int tileSize = 32;
     private int width = cols * tileSize;
     private int height = rows * tileSize;
 
@@ -33,7 +33,7 @@ public class Map extends JPanel {
     private String[] tileMap = {
             "XXXXXXXXXXXXXXXXXXX",
             "X        X        X",
-            "X XX XXX X XXX XX X",
+            "X.XX XXX X XXX XX.X",
             "X  c              X",
             "X XX X XXXXX X XX X",
             "X    X       X    X",
@@ -44,9 +44,9 @@ public class Map extends JPanel {
             "XXXX X XXXXX X XXXX",
             "OOOX X       X XOOO",
             "XXXX X XXXXX X XXXX",
-            "X        X    .   X",
+            "X        X        X",
             "X XX XXX X XXX XX X",
-            "X  X     P     X  X",
+            "X. X     P     X .X",
             "XX X X XXXXX X X XX",
             "X    X   X   X    X",
             "X XXXXXX X XXXXXX X",
