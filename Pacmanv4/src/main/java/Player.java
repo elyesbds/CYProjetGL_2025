@@ -56,19 +56,12 @@ public class Player extends MobileEntity implements Mobile{
         for (Food food : getMap().getFoods()){
             if(collision(this, food)){
                 foodEaten = food;
-                if("cherry".equals(food.getFoodType())){
-                    this.score +=100;
-                }
+                this.score+=foodEaten.getScore();
                 if("big".equals(food.getFoodType())){
-                    this.score+=100;
                     for(Ghost ghost : getMap().getGhosts()){
                         ghost.setScared(true);
-                        ghost.setImage(getMap().getScaredGhostImage());
-                        ghost.updateDirection(ghost.getOppositeDirection(ghost.getDirection()));
+                        
                     }
-                }
-                else{
-                    this.score += 10;
                 }
                 
             }
@@ -76,8 +69,10 @@ public class Player extends MobileEntity implements Mobile{
         getMap().getFoods().remove(foodEaten);
 
         if(getMap().getFoods().isEmpty()){
+        	getMap().setLevel(getMap().getLevel()+1);
             getMap().loadMap();
             getMap().resetPositions();
+            
         }
 
     }

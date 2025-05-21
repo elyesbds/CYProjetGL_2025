@@ -223,8 +223,19 @@ public abstract class Ghost extends MobileEntity implements Mobile{
 	}
 
 	public void setScared(boolean isScared) {
-		this.isScared = isScared;
+	    this.isScared = isScared;
+	    if (isScared) {
+	        this.scaredTimer = 0;
+	        this.frameCounter = 0;
+	        this.setImage(this.scaredGhostImage);
+	        this.updateDirection(this.getOppositeDirection(this.getDirection()));
+	        System.out.println("Ghost entered scared mode");
+	    } 
+	    else {
+	        this.setImage(this.realImage);
+	    }
 	}
+
 
 	public int getFrameCounter() {
 		return frameCounter;

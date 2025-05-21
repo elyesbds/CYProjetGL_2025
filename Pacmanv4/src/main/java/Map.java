@@ -1,5 +1,7 @@
 import java.awt.*;
 import java.util.HashSet;
+import java.util.Random;
+
 import javax.swing.*;
 
 @SuppressWarnings("serial")
@@ -7,9 +9,10 @@ public class Map extends JPanel {
 
     private int rows = 21;
     private int cols = 19;
-    private int tileSize = 32;
+    private int tileSize = 64;
     private int width = cols * tileSize;
     private int height = rows * tileSize;
+    private int level = 0;
 
     private Image wallImage;
     private Image blueGhostImage;
@@ -24,6 +27,10 @@ public class Map extends JPanel {
     private Image pacmanRightImage;
 
     private Image cherryImage;
+    private Image strawberryImage;
+    private Image orangeImage;
+    private Image appleImage;
+    private Image mysteryImage;
 
     private HashSet<Wall> walls;
     private HashSet<Ghost> ghosts;
@@ -34,7 +41,7 @@ public class Map extends JPanel {
             "XXXXXXXXXXXXXXXXXXX",
             "X        X        X",
             "X.XX XXX X XXX XX.X",
-            "X  c              X",
+            "X                 X",
             "X XX X XXXXX X XX X",
             "X    X       X    X",
             "XXXX XXXX XXXX XXXX",
@@ -60,6 +67,10 @@ public class Map extends JPanel {
 
         wallImage = new ImageIcon(getClass().getResource("/wall.png")).getImage();
         cherryImage = new ImageIcon(getClass().getResource("/cherry.png")).getImage();
+        strawberryImage = new ImageIcon(getClass().getResource("/strawberry.png")).getImage();
+        orangeImage = new ImageIcon(getClass().getResource("/orange.png")).getImage();
+        appleImage = new ImageIcon(getClass().getResource("/apple.png")).getImage();
+        mysteryImage = new ImageIcon(getClass().getResource("/mystery.png")).getImage();
 
         blueGhostImage = new ImageIcon(getClass().getResource("/blueGhost.png")).getImage();
         orangeGhostImage = new ImageIcon(getClass().getResource("/orangeGhost.png")).getImage();
@@ -79,6 +90,11 @@ public class Map extends JPanel {
         walls = new HashSet<Wall>();
         foods = new HashSet<Food>();
         ghosts = new HashSet<Ghost>();
+        
+        switch(this.level) {
+        case(1):
+        	
+        }
 
         for(int r=0; r < rows; r++){
             for(int c=0; c < cols; c++){
@@ -87,6 +103,38 @@ public class Map extends JPanel {
 
                 int x = c*tileSize;
                 int y = r*tileSize;
+                
+                switch(this.level) {
+                case(0):
+                	break;
+                case(1):
+                	if(r==1 && c==16) {
+                		tileMapChar = 'c';
+                	}
+                	break;
+                case(2):
+                	if(r==3 && c==2) {
+                		tileMapChar = 's';
+                	}
+                	break;
+                case(3):
+                	if(r==20 && c==16) {
+                		tileMapChar = 'v';
+                	}
+                	break;
+                case(4):
+                	if(r==15 && c==1) {
+                		tileMapChar = 'a';
+                	}
+                	break;
+                case(5):
+                	if(r==9 && c==7) {
+                		tileMapChar = 'm';
+                	}
+                	break;
+                default:
+                	break;
+                }
 
                 if(tileMapChar == 'X'){
                     Wall wall = new Wall(wallImage, x, y, tileSize, tileSize, this);
@@ -109,11 +157,27 @@ public class Map extends JPanel {
                     ghosts.add(ghost);
                 }
                 else if (tileMapChar == 'c'){
-                    Food food = new Food(cherryImage,x,y,tileSize,tileSize,"cherry");
+                    Food food = new Food(cherryImage,x,y,tileSize,tileSize,"cherry",100);
+                    foods.add(food);
+                }
+                else if (tileMapChar == 's'){
+                    Food food = new Food(strawberryImage,x,y,tileSize,tileSize,"strawberry",300);
+                    foods.add(food);
+                }
+                else if (tileMapChar == 'a'){
+                    Food food = new Food(appleImage,x,y,tileSize,tileSize,"apple",500);
+                    foods.add(food);
+                }
+                else if (tileMapChar == 'v'){ //o deja pris, orange
+                    Food food = new Food(orangeImage,x,y,tileSize,tileSize,"orange",700);
+                    foods.add(food);
+                }
+                else if (tileMapChar == 'm'){
+                    Food food = new Food(mysteryImage,x,y,tileSize,tileSize,"mystery",1000);
                     foods.add(food);
                 }
                 else if(tileMapChar == '.'){
-                    Food food = new Food(null,x+20,y+20,24,24,"big");
+                    Food food = new Food(null,x+20,y+20,24,24,"big",50);
                     foods.add(food);
                 }
                 else if(tileMapChar == 'P'){
@@ -126,7 +190,7 @@ public class Map extends JPanel {
                     
                 }
                 else if(tileMapChar == ' '){
-                    Food food = new Food(null, x + 26, y + 26, 12, 12, "default");
+                    Food food = new Food(null, x + 26, y + 26, 12, 12, "default",10);
                     foods.add(food);
                 }
             }
@@ -166,6 +230,18 @@ public class Map extends JPanel {
                 g.fillOval(food.getX(), food.getY(), food.getWidth(), food.getHeight());
             }
             else if(food.getFoodType()=="cherry"){
+                g.drawImage(food.getImage(),food.getX(),food.getY(),food.getWidth(),food.getHeight(),null);
+            }
+            else if(food.getFoodType()=="apple"){
+                g.drawImage(food.getImage(),food.getX(),food.getY(),food.getWidth(),food.getHeight(),null);
+            }
+            else if(food.getFoodType()=="strawberry"){
+                g.drawImage(food.getImage(),food.getX(),food.getY(),food.getWidth(),food.getHeight(),null);
+            }
+            else if(food.getFoodType()=="orange"){
+                g.drawImage(food.getImage(),food.getX(),food.getY(),food.getWidth(),food.getHeight(),null);
+            }
+            else if(food.getFoodType()=="mystery"){
                 g.drawImage(food.getImage(),food.getX(),food.getY(),food.getWidth(),food.getHeight(),null);
             }
             
@@ -347,6 +423,46 @@ public class Map extends JPanel {
 
 	public void setTileMap(String[] tileMap) {
 		this.tileMap = tileMap;
+	}
+
+	public int getLevel() {
+		return level;
+	}
+
+	public void setLevel(int level) {
+		this.level = level;
+	}
+
+	public Image getStrawberryImage() {
+		return strawberryImage;
+	}
+
+	public void setStrawberryImage(Image strawberryImage) {
+		this.strawberryImage = strawberryImage;
+	}
+
+	public Image getOrangeImage() {
+		return orangeImage;
+	}
+
+	public void setOrangeImage(Image orangeImage) {
+		this.orangeImage = orangeImage;
+	}
+
+	public Image getAppleImage() {
+		return appleImage;
+	}
+
+	public void setAppleImage(Image appleImage) {
+		this.appleImage = appleImage;
+	}
+
+	public Image getMysteryImage() {
+		return mysteryImage;
+	}
+
+	public void setMysteryImage(Image mysteryImage) {
+		this.mysteryImage = mysteryImage;
 	}
 
 }
