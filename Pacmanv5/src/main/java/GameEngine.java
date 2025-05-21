@@ -2,6 +2,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+
 import javax.swing.Timer;
 
 /**
@@ -12,6 +13,7 @@ public class GameEngine implements ActionListener, KeyListener{
 
     private Map map;
     Timer gameLoop;
+    private boolean paused = false;
 
     /**
      * Constructs a new GameEngine with the specified map.
@@ -24,6 +26,7 @@ public class GameEngine implements ActionListener, KeyListener{
 
         map.addKeyListener(this);
         map.setFocusable(true);
+        map.requestFocusInWindow();
 
         gameLoop = new Timer(22, this);
         gameLoop.start();
@@ -37,6 +40,8 @@ public class GameEngine implements ActionListener, KeyListener{
      */
     @Override
     public void actionPerformed(ActionEvent e) {
+        if (paused) return; // Ne rien faire si en pause
+
         map.getPacman().updateDirection(map.getPacman().getNextDirection());
         map.getPacman().move();
         for(Ghost ghost : map.getGhosts()){
@@ -72,6 +77,8 @@ public class GameEngine implements ActionListener, KeyListener{
      */
     @Override
     public void keyReleased(KeyEvent e) {
+        if (paused) return; // Ne rien faire si en pause
+
         if(map.getPacman().isGameOver()) {
             map.loadMap();
             map.resetPositions();
@@ -94,4 +101,28 @@ public class GameEngine implements ActionListener, KeyListener{
             map.getPacman().updateNextDirection('R');
         }
     }
+
+    public void pause() {
+        paused = true;
+        gameLoop.stop();
+    }
+
+    public void resume() {
+        paused = false;
+        gameLoop.start();
+        map.requestFocusInWindow(); // Redonne le focus clavier après la pause
+    }
+
+    public boolean isGameOver() {
+        return map.getPacman().isGameOver();
+    }
+
+    public int getScore() {
+        return map.getPacman().getScore();
+    }
+
+    public Map getMap() {
+        return map;
+    }
 }
+
