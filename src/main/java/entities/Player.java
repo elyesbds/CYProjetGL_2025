@@ -20,7 +20,7 @@ import map.Wall;
  *   <li>Processing food collection and power-up effects</li>
  * </ul>
  */
-public class Player extends MobileEntity implements Mobile {
+public class Player extends MobileEntity{
 
     private int score = 0;
     private int lives = 3;
@@ -56,7 +56,6 @@ public class Player extends MobileEntity implements Mobile {
      *   <li>Checking for level completion</li>
      * </ul>
      */
-    @Override
     public void move() {
         // Update sprite based on direction
         if (super.getDirection() == 'U') {
