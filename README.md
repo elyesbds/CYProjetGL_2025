@@ -24,4 +24,4 @@ Si vous voulez simplement lancer grâce à l'executable :
   - Si vous voulez lancer le jeu avec la musique de fond, vous pouvez directement taper dans un invite de commande ouvert dans le dossier du projet : "java -jar target/pacman-2.0-SNAPSHOT.jar"
 
 ## Comment jouer ?
-Une fois le jeu lancé, cliquez sur "Nouvelle partie", entrez votre pseudo et profitez d'une expérience de jeu sensationnelle en vous déplacant avec les flèches directionnelles du clavier ou avec les touches ZQSD !
+Une fois le jeu lancé, cliquez sur "Nouvelle partie", entrez votre pseudo et profitez d'une expérience de jeu sensationnelle en vous déplaçant avec les flèches directionnelles du clavier ou avec les touches ZQSD !
