@@ -18,6 +18,7 @@ import engine.GameEngine;
 import map.Map;
 import menu.EndScreen;
 import menu.MainMenu;
+import.menu.SoundPlayer;
 
 /**
  * Main application class for the Pac-Man game that handles game initialization,
