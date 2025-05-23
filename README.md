@@ -14,3 +14,11 @@ Un remake classique de Pac-Man développé en Java avec Swing. Le joueur incarne
 - Mode « effrayé » : les fantômes deviennent vulnérables quand Pacman mange une super pac-gomme.
 - Affichage graphique, menu principal et tableaux des scores avec Swing.
 - Architecture orientée objet respectant l'encapsulation.
+
+## Marche à suivre pour lancer le jeu
+Si vous voulez executer le jeu localement en téléchargeant le code sur votre machine :
+  - tapez dans un invite de commande ouvert dans le dossier du projet, "Pacman3.0" : "mvn clean compile" puis "mvn exec:java"
+
+Si vous voulez simplement lancer grâce à l'executable :
+  - En double-cliquant dur le .jar il se peut que la musique ne se lance pas mais le jeu fonctionnera normalement
+  - Si vous voulez lancer le jeu avec la musique de fond, vous pouvez directement taper dans un invite de commande ouvert dans le dossier du projet : "java -jar target/pacman-2.0-SNAPSHOT.jar"
