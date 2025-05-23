@@ -151,7 +151,24 @@ public abstract class Ghost extends MobileEntity{
             } 
         }
     }
-
+    /**
+     * Updates the velocity of the entity based on its current direction and game level.
+     * <p>
+     * The velocity is calculated as a function of the tile size and a speed factor.
+     * If the current game level is 10 or higher, the entity moves faster by halving the speed factor.
+     * The entity is also aligned to the grid before applying the velocity.
+     * </p>
+     * 
+     * Direction is expected to be one of the following characters:
+     * <ul>
+     *   <li>'U' - Up</li>
+     *   <li>'D' - Down</li>
+     *   <li>'L' - Left</li>
+     *   <li>'R' - Right</li>
+     * </ul>
+     * 
+     * The resulting velocity is applied to the X or Y axis accordingly.
+     **/
     @Override
     public void updateVelocity(){
         int s = 14;
