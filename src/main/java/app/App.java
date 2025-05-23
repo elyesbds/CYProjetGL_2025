@@ -93,8 +93,8 @@ public class App {
      */
     public static void lancerJeu(String pseudo) {
 
-        /*SoundPlayer music = new SoundPlayer("src/main/resources/music.wav");
-        music.playLoop();*/
+        SoundPlayer music = new SoundPlayer("src/main/resources/music.wav");
+        music.playLoop();
 
         int rows = 21;
         int cols = 19;
