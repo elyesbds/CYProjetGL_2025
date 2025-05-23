@@ -16,7 +16,7 @@ Un remake classique de Pac-Man développé en Java avec Swing. Le joueur incarne
 - Architecture orientée objet respectant l'encapsulation.
 
 ## Marche à suivre pour lancer le jeu
-Si vous voulez executer le jeu localement en téléchargeant le code sur votre machine :
+Si vous voulez executer le jeu localement en téléchargeant le code sur votre machine (il faut avoir maven d'installé sur votre machine):
   - tapez dans un invite de commande ouvert dans le dossier du projet, "Pacman3.0" : "mvn clean compile" puis "mvn exec:java"
 
 Si vous voulez simplement lancer grâce à l'executable :
