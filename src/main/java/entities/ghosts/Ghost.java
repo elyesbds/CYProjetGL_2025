@@ -271,7 +271,7 @@ public abstract class Ghost extends MobileEntity{
                 this.updateDirection(newDirection);
             }
             frameCounter = 0;
-        }else if(super.getY() == super.getMap().getTileSize()*9 && super.getDirection() != 'U' && super.getDirection() != 'D'){
+        }else if(super.getY() == super.getMap().getTileSize()*9 && super.getDirection() != 'U' && super.getDirection() != 'D'){ // exception pour que les fantomes ne coincent pas dans le tunnel
             this.updateDirection('U');
         }
         if(scaredTimer >= endScaredTimer){
@@ -340,7 +340,11 @@ public abstract class Ghost extends MobileEntity{
         }
         return bestDir;
     }
-
+    /**
+    * Sets the respawn timer
+    *
+    * @param timer The time to respawn
+    **/
     public void setRespawnTimer(int timer){
         this.respawnTimer = timer;
     }
@@ -447,6 +451,11 @@ public abstract class Ghost extends MobileEntity{
         }
         this.scaredTimer = 0;
     }
+    /**
+    * Set the ghost to eaten state. Get back to start positions, change his image and set his respawn timer to 0.
+    *
+    * @param isEaten If true the ghost is in eaten mode, otherwise goes back to normal mode.
+    **/
 
     public void setEaten(boolean isEaten){
         this.isEaten = isEaten;
