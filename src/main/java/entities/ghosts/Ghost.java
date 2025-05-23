@@ -1,202 +1,237 @@
 package entities.ghosts;
+
 import java.awt.Image;
 import java.util.Random;
-
 import javax.swing.ImageIcon;
-
 import entities.Entity;
 import entities.MobileEntity;
 import map.Map;
 import map.Wall;
 
 /**
- * Abstract class representing a ghost enemy in the game.
- * This class provides base functionality for all ghost types
- * including movement logic, scared behavior, and collision handling.
+ * Abstract base-class for every ghost in the Pac-Man game.
+ * <p>
+ * It handles common behaviour such as:
+ * <ul>
+ *   <li>movement and velocity update,</li>
+ *   <li>frightened / eaten states with the corresponding sprites,</li>
+ *   <li>collision detection against walls and Pac-Man,</li>
+ *   <li>basic path-finding helpers shared by all concrete ghosts.</li>
+ * </ul>
+ * Concrete subclasses (Blinky, Pinky, Inky, Clyde…) only need to
+ * implement {@link #decideDirection()} and {@link #handleWallCollision()}
+ * to provide their individual AI.
+ * </p>
+ *
+ * @author  Equipe 1
+ * @version 6.0
  */
-public abstract class Ghost extends MobileEntity{
+public abstract class Ghost extends MobileEntity {
 
-    private char[] directions = {'U', 'D', 'L', 'R'};
-    Random random = new Random();
-    private Image realImage;
-    private Image scaredGhostImage; 
-    private Image whiteScaredGhostImage;  
-    private Image eatenGhostImage;
+    /* ------------------------------------------------------- */
+    /*                      CONSTANTS / FIELDS                 */
+    /* ------------------------------------------------------- */
 
+    /** Allowed movement directions. */
+    private char[] directions = { 'U', 'D', 'L', 'R' };
+
+    /** Shared pseudo-random generator (used for frightened move). */
+    private Random random = new Random();
+
+    /* --- Sprites --- */
+    private Image realImage;                 // normal sprite
+    private Image scaredGhostImage;          // blue frightened ghost
+    private Image whiteScaredGhostImage;     // flashing white sprite
+    private Image eatenGhostImage;           // returning-eyes sprite
+
+    /* --- State flags --- */
     private boolean isScared;
-    private boolean isEaten; 
-    private int frameCounter = 0;
-    private int scaredTimer = 0;
-    private int respawnTimer = 0;
+    private boolean isEaten;
+
+    /* --- Timers / Counters --- */
+    private int frameCounter       = 0;
+    private int scaredTimer        = 0;
+    private int respawnTimer       = 0;
     private final int respawnDelay = 180;
     private final int endScaredTimer;
-    private final int targetUpdateInterval = 1;
+    private final int targetUpdateInterval   = 1;
     private final int changeDirectionInterval = 60;
 
+    /* ------------------------------------------------------- */
+    /*                       CONSTRUCTOR                       */
+    /* ------------------------------------------------------- */
+
     /**
-     * Constructs a new Ghost with specified image, position, dimensions, and map.
+     * Creates a new ghost.
      *
-     * @param image  The visual representation of this ghost
-     * @param x      The x-coordinate of this ghost's starting position
-     * @param y      The y-coordinate of this ghost's starting position
-     * @param width  The width of this ghost
-     * @param height The height of this ghost
-     * @param map    The game map containing all game entities
+     * @param image   normal sprite (non-frightened)
+     * @param x       initial x-coordinate (pixels)
+     * @param y       initial y-coordinate (pixels)
+     * @param width   sprite width
+     * @param height  sprite height
+     * @param map     reference to the current game map
      */
-    Ghost(Image image, int x, int y, int width, int height, Map map){
+    Ghost(Image image, int x, int y, int width, int height, Map map) {
         super(image, x, y, width, height, map);
-        this.isScared = false;
+        this.isScared  = false;
         this.realImage = image;
 
+        /* Frightened duration grows shorter after level 5. */
         endScaredTimer = super.getMap().getLevel() >= 5 ? 200 : 300;
-        
-        scaredGhostImage = new ImageIcon(getClass().getResource("/scaredGhost.png")).getImage();
-        eatenGhostImage = new ImageIcon(getClass().getResource("/ghostEyes.png")).getImage();
+
+        /* Load additional sprites from resources. */
+        scaredGhostImage      = new ImageIcon(getClass().getResource("/scaredGhost.png")).getImage();
+        eatenGhostImage       = new ImageIcon(getClass().getResource("/ghostEyes.png")).getImage();
         whiteScaredGhostImage = new ImageIcon(getClass().getResource("/whiteScaredGhost.png")).getImage();
     }
 
-    /**
-     * Determines if the ghost is currently in a tunnel section of the map.
-     * Ghosts move slower in tunnels.
-     *
-     * @return true if the ghost is in a tunnel, false otherwise
-     */
-    /*public boolean isInTunnel() {
-        int tunnelY = 9 * super.getMap().getTileSize(); 
-        return  super.getY() == tunnelY &&
-               (super.getX() <= 2 * super.getMap().getTileSize() || super.getX() >= (super.getMap().getCols() - 2) * super.getMap().getTileSize());
-    }*/
+    /* ------------------------------------------------------- */
+    /*                    HIGH-LEVEL BEHAVIOUR                 */
+    /* ------------------------------------------------------- */
 
+    /**
+     * Default chasing : aim directly at Pac-Man’s current tile
+     * using a simple greedy step (subclasses may override).
+     */
     public void chaseTarget() {
         int pacmanX = super.getMap().getPacman().getX();
         int pacmanY = super.getMap().getPacman().getY();
-            
+
         char bestDirection = findBestDirection(pacmanX, pacmanY);
         this.updateDirection(bestDirection);
-    }    
+    }
 
     /**
-     * Updates the ghost's position and handles collisions with walls and the player.
-     * Behavior differs based on whether the ghost is in scared mode or not.
+     * Core update called every frame by the {@code GameEngine}.
+     * <p>
+     * - Handles frightened / eaten timers<br>
+     * - Executes AI decision<br>
+     * - Applies movement with tunnel wrap-around<br>
+     * - Detects collisions with walls and Pac-Man
+     * </p>
      */
-    public final void move(){
-        if(this.isEaten){
+    public final void move() {
+        /* --- Eyes returning to the lair --- */
+        if (isEaten) {
             respawnTimer++;
-            if(respawnTimer >= respawnDelay){
-                this.isEaten = false;
-                this.setScared(false);
+            if (respawnTimer >= respawnDelay) {
+                isEaten = false;
+                setScared(false);
             }
             return;
         }
 
-        if(this.isScared){
+        /* --- Decide direction depending on state --- */
+        if (isScared) {
             scaredMove();
-        }
-        else{
+        } else {
             decideDirection();
         }
 
-        double speedMultiplier = (isScared()) ? 0.6 : 1.0;
-        
+        /* --- Apply movement (slower when frightened) --- */
+        double speedMultiplier = isScared ? 0.6 : 1.0;
         int oldX = super.getX();
         int oldY = super.getY();
-        
-        int velocityXCorrected = ((int) Math.round(super.getVelocityX()*speedMultiplier));
-        int velocityYCorrected = ((int) Math.round(super.getVelocityY()*speedMultiplier));
-        super.setX(super.getX()+velocityXCorrected);
-        super.setY(super.getY()+velocityYCorrected);
 
-        if(super.getX() <= 0){
-            super.setX(super.getMap().getCols()*super.getMap().getTileSize() - super.getMap().getTileSize());
-        }else if(super.getX() >= (super.getMap().getCols()*super.getMap().getTileSize() - super.getMap().getTileSize())){
+        int vx = (int) Math.round(super.getVelocityX() * speedMultiplier);
+        int vy = (int) Math.round(super.getVelocityY() * speedMultiplier);
+        super.setX(oldX + vx);
+        super.setY(oldY + vy);
+
+        /* --- Horizontal wrap-around tunnels --- */
+        if (super.getX() <= 0) {
+            super.setX(super.getMap().getCols() * super.getMap().getTileSize() - super.getMap().getTileSize());
+        } else if (super.getX() >= (super.getMap().getCols() * super.getMap().getTileSize() - super.getMap().getTileSize())) {
             super.setX(0);
         }
 
-        boolean hasCollision = false;
-        for (Wall wall : super.getMap().getWalls()){
-            if(collision(this, wall)){
-                hasCollision = true;
+        /* --- Wall collision --- */
+        boolean collided = false;
+        for (Wall wall : super.getMap().getWalls()) {
+            if (collision(this, wall)) {
+                collided = true;
                 break;
             }
         }
-        
-        if(hasCollision){
-            // Restore previous coordinates in case of collision
+        if (collided) {
+            /* Restore previous position */
             super.setX(oldX);
             super.setY(oldY);
-            
-            // Handle collision based on ghost state
-            if(this.isScared){
-                char newDirection = directions[random.nextInt(4)];
-                this.updateDirection(newDirection);
+
+            /* Behaviour depends on current mode */
+            if (isScared) {
+                /* Random new direction when frightened */
+                char newDir = directions[random.nextInt(4)];
+                updateDirection(newDir);
             } else {
                 handleWallCollision();
             }
         }
 
-        if(this.isColliding(super.getMap().getPacman())){
-            if(this.isScared){
-                this.setEaten(true);
-                super.getMap().getPacman().setScore(super.getMap().getPacman().getScore()+50);
-            }
-            else{
-                super.getMap().getPacman().setLives(super.getMap().getPacman().getLives()-1);
+        /* --- Collision with Pac-Man --- */
+        if (isColliding(super.getMap().getPacman())) {
+            if (isScared) {
+                setEaten(true);
+                super.getMap().getPacman().setScore(super.getMap().getPacman().getScore() + 50);
+            } else {
+                super.getMap().getPacman().setLives(super.getMap().getPacman().getLives() - 1);
                 setRespawnTimer(respawnDelay);
-                if(super.getMap().getPacman().getLives() == 0){
+
+                if (super.getMap().getPacman().getLives() == 0) {
                     super.getMap().getPacman().setGameOver(true);
                     super.getMap().setLevel(0);
                     return;
                 }
                 super.getMap().resetPositions();
-            } 
+            }
         }
     }
 
+    /* ------------------------------------------------------- */
+    /*       LOW-LEVEL MOVEMENT / VELOCITY CALCULATION         */
+    /* ------------------------------------------------------- */
+
+    /**
+     * Recomputes velocity according to direction, tile size and level speed.
+     * Frightened ghosts automatically slow down (handled in {@link #move()}).
+     */
     @Override
-    public void updateVelocity(){
-        int s = 14;
-        int speedFactor = super.getMap().getLevel() >= 10 ? s/2 : s;
-        int tileSize = super.getMap().getTileSize();
-        int step = Math.round(tileSize/speedFactor);
+    public void updateVelocity() {
+        int s           = 14;                                 // base speed divisor
+        int speedFactor = super.getMap().getLevel() >= 10 ? s / 2 : s;
+        int tileSize    = super.getMap().getTileSize();
+        int step        = Math.round(tileSize / speedFactor);
 
-        alignToGrid(step);
+        alignToGrid(step);                                    // keep centred on grid
 
-        if (super.getDirection() == 'U'){
-            super.setVelocityX(0);
-            super.setVelocityY(-step);
-        }
-        else if (super.getDirection() == 'D'){
-            super.setVelocityX(0);
-            super.setVelocityY(step);
-        }
-        else if (super.getDirection() == 'L'){
-            super.setVelocityX(-step);
-            super.setVelocityY(0);
-        }
-        else if (super.getDirection() == 'R'){
-            super.setVelocityX(step);
-            super.setVelocityY(0);
+        switch (super.getDirection()) {
+            case 'U' -> { super.setVelocityX(0);   super.setVelocityY(-step); }
+            case 'D' -> { super.setVelocityX(0);   super.setVelocityY(step);  }
+            case 'L' -> { super.setVelocityX(-step); super.setVelocityY(0);  }
+            case 'R' -> { super.setVelocityX(step);  super.setVelocityY(0);  }
         }
     }
 
-    /**
-     * Abstract method to be implemented by ghost subclasses.
-     * Determines the movement direction based on the ghost's unique behavior.
-     */
+    /* ------------------------------------------------------- */
+    /*                ABSTRACT AI HOOKS FOR SUBCLASSES         */
+    /* ------------------------------------------------------- */
+
+    /** Computer-player AI to pick a new direction each frame (non-frightened). */
     protected abstract void decideDirection();
-    
-    /**
-     * Abstract method to be implemented by ghost subclasses.
-     * Handles wall collisions based on the ghost's unique behavior.
-     */
+
+    /** Fine-grained reaction when bumping into a wall (non-frightened). */
     protected abstract void handleWallCollision();
 
+    /* ------------------------------------------------------- */
+    /*                 HELPER METHODS (PUBLIC / PROTECTED)     */
+    /* ------------------------------------------------------- */
+
     /**
-     * Determines if two directions are opposites of each other.
+     * Returns {@code true} if {@code dir1} is the opposite of {@code dir2}.
      *
-     * @param dir1 The first direction
-     * @param dir2 The second direction
-     * @return true if the directions are opposites, false otherwise
+     * @param dir1 first direction (U,D,L,R)
+     * @param dir2 second direction (U,D,L,R)
+     * @return {@code true} if opposite, otherwise {@code false}
      */
     protected boolean isOppositeDirection(char dir1, char dir2) {
         return (dir1 == 'U' && dir2 == 'D') ||
@@ -206,104 +241,96 @@ public abstract class Ghost extends MobileEntity{
     }
 
     /**
-     * Calculates the Euclidean distance between two points.
+     * Euclidean distance helper.
      *
-     * @param x1 The x-coordinate of the first point
-     * @param y1 The y-coordinate of the first point
-     * @param x2 The x-coordinate of the second point
-     * @param y2 The y-coordinate of the second point
-     * @return The Euclidean distance between the points
+     * @param x1 first x
+     * @param y1 first y
+     * @param x2 second x
+     * @param y2 second y
+     * @return distance in pixels
      */
     protected double calculateDistance(int x1, int y1, int x2, int y2) {
-        return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+        return Math.hypot(x2 - x1, y2 - y1);
     }
 
     /**
-     * Returns the opposite direction of the given direction.
+     * Converts a direction to its opposite.
      *
-     * @param dir The direction to get the opposite of
-     * @return The opposite direction, or 'n' if the input is invalid
+     * @param dir input direction
+     * @return opposite direction or {@code 'n'} if invalid
      */
-    protected char getOppositeDirection(char dir){
-        switch(dir){
-            case 'U':
-                return 'D';
-            case 'D':
-                return 'U';
-            case 'L':
-                return 'R';
-            case 'R':
-                return 'L';
-            default:
-                return 'n';
-        }
+    protected char getOppositeDirection(char dir) {
+        return switch (dir) {
+            case 'U' -> 'D';
+            case 'D' -> 'U';
+            case 'L' -> 'R';
+            case 'R' -> 'L';
+            default  -> 'n';
+        };
     }
 
     /**
-     * Handles movement when the ghost is in scared mode.
-     * Ghosts move randomly when scared.
+     * Frightened random walk with flashing sprite near the end.
+     * Called every frame while {@code isScared == true}.
      */
-    protected void scaredMove(){
+    protected void scaredMove() {
         frameCounter++;
         scaredTimer++;
 
-        if (frameCounter == changeDirectionInterval){
-            char newDirection = directions[random.nextInt(4)];
-            if(isOppositeDirection(newDirection, super.getDirection())){}
-            else{
-                this.updateDirection(newDirection);
+        /* Randomly change direction every N frames */
+        if (frameCounter == changeDirectionInterval) {
+            char newDir = directions[random.nextInt(4)];
+            if (!isOppositeDirection(newDir, super.getDirection())) {
+                updateDirection(newDir);
             }
             frameCounter = 0;
-        }else if(super.getY() == super.getMap().getTileSize()*9 && super.getDirection() != 'U' && super.getDirection() != 'D'){
-            this.updateDirection('U');
+        } else if (super.getY() == super.getMap().getTileSize() * 9 &&
+                   super.getDirection() != 'U' && super.getDirection() != 'D') {
+            updateDirection('U');                    // force upward when in tunnel
         }
-        if(scaredTimer >= endScaredTimer){
-            this.setScared(false);
-            this.setImage(this.realImage);
-            this.setFrameCounter(0);
+
+        /* End of frightened mode */
+        if (scaredTimer >= endScaredTimer) {
+            setScared(false);
+            setImage(realImage);
+            frameCounter = 0;
             decideDirection();
         }
-        else if (scaredTimer >= endScaredTimer-120 && scaredTimer < endScaredTimer){
-            if(super.getImage() == scaredGhostImage && scaredTimer%10 == 0){
-                this.setImage(whiteScaredGhostImage);
-            }else if (scaredTimer%10 == 0){
-                this.setImage(scaredGhostImage);
+        /* Flash white during the last 120 frames */
+        else if (scaredTimer >= endScaredTimer - 120) {
+            if (scaredTimer % 10 == 0) {
+                setImage(getImage() == scaredGhostImage ? whiteScaredGhostImage : scaredGhostImage);
             }
         }
     }
 
     /**
-     * Finds the best direction to move towards a target position.
+     * Greedy search for the best immediate direction towards a target tile.
      *
-     * @param targetX The x-coordinate of the target position
-     * @param targetY The y-coordinate of the target position
-     * @return The best direction to move ('U', 'D', 'L', 'R') or ' ' if no valid direction
+     * @param targetX target x-coordinate (pixels)
+     * @param targetY target y-coordinate (pixels)
+     * @return chosen direction (U,D,L,R) or space if blocked
      */
-    protected char findBestDirection(int targetX, int targetY){
-        char bestDir = ' ';
-        double shortestDistance = Double.MAX_VALUE;
+    protected char findBestDirection(int targetX, int targetY) {
+        char   bestDir         = ' ';
+        double shortestDist    = Double.MAX_VALUE;
 
-        for(char dir : directions){
-            if(isOppositeDirection(dir, super.getDirection())){
-                continue;
-            }
+        for (char dir : directions) {
+            if (isOppositeDirection(dir, super.getDirection())) continue;
 
+            /* Simulate one step */
             int newX = super.getX();
             int newY = super.getY();
+            int step = super.getMap().getTileSize() / 8;
 
-            if (dir == 'U'){
-                newY -= super.getMap().getTileSize()/8;
-            }
-            else if (dir == 'D'){
-                newY += super.getMap().getTileSize()/8;
-            }
-            else if (dir == 'L'){
-                newX -= super.getMap().getTileSize()/8;
-            }
-            else if (dir == 'R'){
-                newX += super.getMap().getTileSize()/8;
+            switch (dir) {
+                case 'U' -> newY -= step;
+                case 'D' -> newY += step;
+                case 'L' -> newX -= step;
+                case 'R' -> newX += step;
             }
 
+            /* Check wall collision for this tentative move */
             boolean collides = false;
             for (Wall wall : super.getMap().getWalls()) {
                 if (collision(new Entity(null, newX, newY, super.getWidth(), super.getHeight()), wall)) {
@@ -311,18 +338,21 @@ public abstract class Ghost extends MobileEntity{
                     break;
                 }
             }
+            if (collides) continue;
 
-            if (!collides) {
-                double distance = calculateDistance(newX, newY, targetX, targetY);
-                
-                if (distance < shortestDistance) {
-                    shortestDistance = distance;
-                    bestDir = dir;
-                }
+            /* Keep the direction yielding the shortest distance */
+            double dist = calculateDistance(newX, newY, targetX, targetY);
+            if (dist < shortestDist) {
+                shortestDist = dist;
+                bestDir      = dir;
             }
         }
         return bestDir;
     }
+
+    /* ------------------------------------------------------- */
+    /*                 STATE MANAGEMENT (getters/setters)      */
+    /* ------------------------------------------------------- */
 
     public void setRespawnTimer(int timer){
         this.respawnTimer = timer;
