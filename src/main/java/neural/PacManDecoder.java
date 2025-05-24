@@ -24,7 +24,6 @@ import java.util.Properties;
  * <p>The score achieved during gameplay is used as the fitness measure.
  * The higher the score, the lower the fitness value (as the algorithm minimizes the fitness).</p>
  * 
- * @author (your name)
  */
 public class PacManDecoder extends GeneticDecoder {
 
