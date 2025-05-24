@@ -1,4 +1,5 @@
 package engine;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -10,101 +11,98 @@ import entities.ghosts.Ghost;
 import map.Map;
 
 /**
- * The main game engine that handles the game loop, keyboard input, and game state updates.
- * <p>
- * This class implements {@link ActionListener} to handle periodic updates via a {@link Timer},
- * and {@link KeyListener} to process user input for controlling Pac-Man.
- * </p>
+ * The {@code GameEngine} class manages the main game loop and handles user input
+ * for controlling the Pac-Man game. It supports both AI-controlled and player-controlled modes.
  */
-public class GameEngine implements ActionListener, KeyListener{
+public class GameEngine implements ActionListener, KeyListener {
 
+    /** The game map containing Pac-Man, ghosts, walls, and food. */
     private Map map;
-    Timer gameLoop;
+
+    /** Timer for the game loop, running at approximately 60 FPS. */
+    private Timer gameLoop;
+
+    /** Indicates whether the game is currently paused. */
     private boolean paused = false;
 
+    /** Indicates whether the game is running in AI-controlled mode. */
+    private boolean isAI;
+
     /**
-     * Constructs a new GameEngine with the specified map.
-     * Initializes the game loop timer and sets up key listening.
+     * Constructs a new {@code GameEngine} instance.
      *
-     * @param map The game map containing all game entities
+     * @param map  the game map to be used
+     * @param isAI true if the game is controlled by AI, false for player control
      */
-    public GameEngine(Map map){
+    public GameEngine(Map map, boolean isAI) {
         this.map = map;
+        this.isAI = isAI;
 
         map.addKeyListener(this);
         map.setFocusable(true);
         map.requestFocusInWindow();
 
-        gameLoop = new Timer(16, this);
+        gameLoop = new Timer(16, this); // ~60 FPS
         gameLoop.start();
     }
 
     /**
-     * Called on each game tick by the timer.
-     * Updates game state including Pac-Man's and ghosts' movements, and repaints the game view.
+     * Handles the game loop's action events.
      *
-     * @param e The action event triggered by the timer
+     * @param e the action event triggered by the timer
      */
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (paused) return; // Ne rien faire si en pause
-
-        map.getPacman().updateDirection(map.getPacman().getNextDirection());
-        map.getPacman().move();
-        for(Ghost ghost : map.getGhosts()){
-            ghost.move();
-        }
-        map.repaint();
-        if(map.getPacman().isGameOver()){
-            gameLoop.stop();
-        }
+        gameTick();
     }
 
-   /**
-     * Handles key typed events.
-     * Not used in this implementation.
-     *
-     * @param e The key event
-     */
-    @Override
-    public void keyTyped(KeyEvent e) {}
-
     /**
-     * Handles key pressed events.
-     * Not used in this implementation.
+     * Handles key press events. This method is not used in this implementation.
      *
-     * @param e The key event
+     * @param e the key event
      */
     @Override
     public void keyPressed(KeyEvent e) {}
 
     /**
-     * Handles key released events to control Pac-Man's movement direction.
-     * Also supports ZQSD layout for AZERTY keyboards.
+     * Handles key release events to update Pac-Man's direction.
      *
-     * @param e The key event
+     * @param e the key event
      */
     @Override
     public void keyReleased(KeyEvent e) {
-        if (paused) return; // Ne rien faire si en pause
+        if (paused || isAI) return;
 
-        if (e.getKeyCode() == KeyEvent.VK_UP || e.getKeyCode() == KeyEvent.VK_Z){
-            map.getPacman().updateNextDirection('U');
-        }
-        else if (e.getKeyCode() == KeyEvent.VK_DOWN || e.getKeyCode() == KeyEvent.VK_S){
-            map.getPacman().updateNextDirection('D');
-        }
-        else if (e.getKeyCode() == KeyEvent.VK_LEFT || e.getKeyCode() == KeyEvent.VK_Q){
-            map.getPacman().updateNextDirection('L');
-        }
-        else if (e.getKeyCode() == KeyEvent.VK_RIGHT || e.getKeyCode() == KeyEvent.VK_D){
-            map.getPacman().updateNextDirection('R');
+        switch (e.getKeyCode()) {
+            case KeyEvent.VK_UP:
+            case KeyEvent.VK_Z:
+                map.getPacman().updateNextDirection('U');
+                break;
+            case KeyEvent.VK_DOWN:
+            case KeyEvent.VK_S:
+                map.getPacman().updateNextDirection('D');
+                break;
+            case KeyEvent.VK_LEFT:
+            case KeyEvent.VK_Q:
+                map.getPacman().updateNextDirection('L');
+                break;
+            case KeyEvent.VK_RIGHT:
+            case KeyEvent.VK_D:
+                map.getPacman().updateNextDirection('R');
+                break;
         }
     }
 
     /**
-     * Pauses the game loop.
-     * Stops the timer to freeze all game updates.
+     * Handles key typed events. This method is not used in this implementation.
+     *
+     * @param e the key event
+     */
+    @Override
+    public void keyTyped(KeyEvent e) {}
+
+    /**
+     * Pauses the game by stopping the game loop.
      */
     public void pause() {
         paused = true;
@@ -112,40 +110,63 @@ public class GameEngine implements ActionListener, KeyListener{
     }
 
     /**
-     * Resumes the game loop after a pause.
-     * Restarts the timer and requests focus for the map component.
+     * Resumes the game by restarting the game loop.
      */
     public void resume() {
         paused = false;
         gameLoop.start();
-        map.requestFocusInWindow(); // Redonne le focus clavier après la pause
+        map.requestFocusInWindow();
     }
 
     /**
-     * Returns whether the game is over.
+     * Checks if the game is over.
      *
-     * @return {@code true} if the game is over; {@code false} otherwise
+     * @return true if the game is over, false otherwise
      */
     public boolean isGameOver() {
         return map.getPacman().isGameOver();
     }
 
     /**
-     * Returns the current score of the player.
+     * Gets the current score of the game.
      *
-     * @return The player's current score
+     * @return the current score
      */
     public int getScore() {
         return map.getPacman().getScore();
     }
 
     /**
-     * Returns the current game map.
+     * Gets the game map.
      *
-     * @return The map used by the game engine
+     * @return the game map
      */
     public Map getMap() {
         return map;
     }
-}
 
+    /**
+     * Executes a single tick of the game loop.
+     * Handles movement, collisions, and game state updates.
+     */
+    protected void gameTick() {
+        if (paused) return;
+
+        if (isAI) {
+            map.getPacman().move(); // AI-controlled movement
+        } else {
+            map.getPacman().updateDirection(map.getPacman().getNextDirection());
+            map.getPacman().move();
+        }
+
+        for (Ghost ghost : map.getGhosts()) {
+            ghost.move(); // Move each ghost
+        }
+
+        map.repaint(); // Redraw the map
+
+        if (map.getPacman().isGameOver()) {
+            gameLoop.stop(); // Stop the game loop if the game is over
+        }
+    }
+}
