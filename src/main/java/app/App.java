@@ -128,7 +128,7 @@ public class App {
         pacmanMap.requestFocus();
         frame.setVisible(true);
 
-        GameEngine engine = new GameEngine(pacmanMap);
+        GameEngine engine = new GameEngine(pacmanMap, false);
 
         pauseButton.addActionListener(e -> {
             engine.pause();
