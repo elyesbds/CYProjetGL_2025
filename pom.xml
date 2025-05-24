@@ -14,19 +14,27 @@
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
     
-    <dependencies>
-        <!-- Ajoutez ici vos dépendances si nécessaire -->
-    </dependencies>
-    
     <build>
-        <!-- Ajoutez cette section pour définir explicitement où se trouvent les ressources -->
+
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
+                <includes>
+                    <include>**/*</include>
+                </includes>
             </resource>
         </resources>
         
         <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <mainClass>app.App</mainClass>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -40,7 +48,7 @@
                         <configuration>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>App</mainClass>
+                                    <mainClass>app.App</mainClass>
                                 </transformer>
                             </transformers>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
