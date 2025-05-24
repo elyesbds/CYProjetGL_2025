@@ -23,4 +23,8 @@ public class Wall extends Entity{
     Wall(Image image, int x, int y, int width, int height, Map map){
         super(image, x, y, width, height);
     }
+
+    public java.awt.Rectangle getBounds() {
+        return new java.awt.Rectangle(getX(), getY(), getWidth(), getHeight());
+    }
 }
