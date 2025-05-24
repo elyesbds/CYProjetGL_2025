@@ -1,87 +1,94 @@
 package entities;
+
 import java.awt.*;
-
-import entities.Entity;
-
 import map.Map;
 import map.Wall;
 
-
 /**
- * An abstract base class representing all mobile entities in the game.
- * Provides core functionality for movement, collision detection, and positioning
- * that is shared by both player characters and ghosts.
- * 
- * <p>This class handles:
- * <ul>
- *   <li>Movement velocity and direction management</li>
- *   <li>Collision detection with walls and other entities</li>
- *   <li>Position alignment to the game grid</li>
- *   <li>Reset functionality to starting positions</li>
- * </ul>
+ * The {@code MobileEntity} class represents an abstract entity that can move within the game.
+ * It extends the {@link Entity} class and provides additional functionality for movement,
+ * collision detection, and alignment to the game grid.
+ *
+ * <p>This class is intended to be extended by specific mobile entities such as Pac-Man or ghosts.</p>
  */
 public abstract class MobileEntity extends Entity {
-	private int startX;
+
+    /** The starting X position of the entity. */
+    private int startX;
+
+    /** The starting Y position of the entity. */
     private int startY;
+
+    /** The next direction the entity will move in. */
     private char nextDirection = ' ';
+
+    /** The current direction the entity is moving in. */
     private char direction;
+
+    /** The X velocity of the entity. */
     private int velocityX;
+
+    /** The Y velocity of the entity. */
     private int velocityY;
 
+    /** The speed of the entity. */
+    protected int speed = 4;
+
+    /** The center point of the entity. */
     private Point center;
+
+    /** The radius of the entity, used for collision detection. */
     private int radius;
-    
-    private Map map; // les fantomes et pacman ont besoin de connaitre la map
-    
+
+    /** The map the entity is interacting with. */
+    private Map map;
 
     /**
-     * Constructs a new MobileEntity with specified parameters.
+     * Constructs a new {@code MobileEntity}.
      *
-     * @param img    the image representing this entity
-     * @param x      the initial x-coordinate in pixels
-     * @param y      the initial y-coordinate in pixels
-     * @param width  the width of the entity in pixels
-     * @param height the height of the entity in pixels
-     * @param map    the game map reference for collision detection
+     * @param img    the image representing the entity
+     * @param x      the initial X position
+     * @param y      the initial Y position
+     * @param width  the width of the entity
+     * @param height the height of the entity
+     * @param map    the map the entity interacts with
      */
     public MobileEntity(Image img, int x, int y, int width, int height, Map map) {
-    	super(img,x,y,width,height);
-    	this.startX = x;
-    	this.startY = y;
-    	this.map = map;
+        super(img, x, y, width, height);
+        this.startX = x;
+        this.startY = y;
+        this.map = map;
     }
 
-     /**
-     * Updates the queued direction for this entity.
-     * The direction change will be processed during the next movement update.
+    /**
+     * Updates the next direction the entity will move in.
      *
-     * @param direction the new direction character ('U', 'D', 'L', 'R')
+     * @param direction the next direction
      */
-    public void updateNextDirection(char direction){
+    public void updateNextDirection(char direction) {
         this.nextDirection = direction;
     }
-    
+
     /**
      * Resets the entity to its starting position.
      */
-    public void reset(){
+    public void reset() {
         super.setX(this.startX);
         super.setY(this.startY);
     }
 
     /**
-     * Abstract method to update velocity based on current direction.
-     * Must be implemented by concrete subclasses to define specific movement behavior.
+     * Abstract method to update the velocity of the entity.
+     * Must be implemented by subclasses.
      */
     public abstract void updateVelocity();
-    
+
     /**
-     * Attempts to change the entity's movement direction.
-     * Verifies that the new direction won't cause immediate wall collisions.
+     * Updates the direction of the entity and checks for collisions.
      *
-     * @param direction the new direction to attempt ('U', 'D', 'L', 'R')
+     * @param direction the new direction
      */
-    public void updateDirection(char direction){
+    public void updateDirection(char direction) {
         int tempX = super.getX();
         int tempY = super.getY();
 
@@ -93,24 +100,22 @@ public abstract class MobileEntity extends Entity {
         tempY += this.velocityY;
 
         boolean collides = false;
-        for(Wall wall : map.getWalls()){
-            if(collision(new Entity(null, tempX, tempY, super.getWidth(), super.getHeight()), wall)){
+        for (Wall wall : map.getWalls()) {
+            if (collision(new Entity(null, tempX, tempY, super.getWidth(), super.getHeight()), wall)) {
                 collides = true;
                 break;
             }
         }
-        if(collides){
+        if (collides) {
             this.direction = prevDirection;
             updateVelocity();
-        } else {
         }
     }
 
     /**
-     * Aligns the entity to the game grid when approaching tile boundaries.
-     * Ensures smooth movement and proper positioning for turns.
+     * Aligns the entity to the grid based on the given step size.
      *
-     * @param step the distance threshold for alignment in pixels
+     * @param step the step size for alignment
      */
     public void alignToGrid(int step) {
         int x = super.getX();
@@ -143,7 +148,7 @@ public abstract class MobileEntity extends Entity {
     /**
      * Checks if this entity is colliding with another mobile entity.
      *
-     * @param other the other mobile entity to check against
+     * @param other the other mobile entity
      * @return true if the entities are colliding, false otherwise
      */
     public boolean isColliding(MobileEntity other) {
@@ -154,139 +159,164 @@ public abstract class MobileEntity extends Entity {
     }
 
     /**
-     * Gets the collision radius of this entity.
+     * Gets the radius of the entity.
      *
-     * @return the collision radius in pixels
+     * @return the radius
      */
     public int getRadius() {
         return super.getWidth() / 2;
     }
 
     /**
-     * Gets the center point of this entity.
+     * Gets the center point of the entity.
      *
-     * @return a Point representing the center coordinates
+     * @return the center point
      */
     public Point getCenter() {
         return new Point(super.getX() + super.getWidth() / 2, super.getY() + super.getHeight() / 2);
     }
 
+    /**
+     * Gets the starting X position of the entity.
+     *
+     * @return the starting X position
+     */
+    public int getStartX() {
+        return startX;
+    }
 
     /**
-     * @return the starting X coordinate
+     * Sets the starting X position of the entity.
+     *
+     * @param startX the starting X position to set
      */
-	public int getStartX() {
-		return startX;
-	}
-
-
+    public void setStartX(int startX) {
+        this.startX = startX;
+    }
 
     /**
-     * @param startX the starting X coordinate to set
+     * Gets the starting Y position of the entity.
+     *
+     * @return the starting Y position
      */
-	public void setStartX(int startX) {
-		this.startX = startX;
-	}
-
-
+    public int getStartY() {
+        return startY;
+    }
 
     /**
-     * @return the starting Y coordinate
+     * Sets the starting Y position of the entity.
+     *
+     * @param startY the starting Y position to set
      */
-	public int getStartY() {
-		return startY;
-	}
-
-
+    public void setStartY(int startY) {
+        this.startY = startY;
+    }
 
     /**
-     * @param startY the starting Y coordinate to set
+     * Gets the next direction the entity will move in.
+     *
+     * @return the next direction
      */
-	public void setStartY(int startY) {
-		this.startY = startY;
-	}
-
-
+    public char getNextDirection() {
+        return nextDirection;
+    }
 
     /**
-     * @return the next queued direction
+     * Sets the next direction the entity will move in.
+     *
+     * @param nextDirection the next direction to set
      */
-	public char getNextDirection() {
-		return nextDirection;
-	}
-
-
+    public void setNextDirection(char nextDirection) {
+        this.nextDirection = nextDirection;
+    }
 
     /**
-     * @param nextDirection the next direction to queue
+     * Gets the current direction the entity is moving in.
+     *
+     * @return the current direction
      */
-	public void setNextDirection(char nextDirection) {
-		this.nextDirection = nextDirection;
-	}
-
-
+    public char getDirection() {
+        return direction;
+    }
 
     /**
-     * @return the current movement direction
+     * Sets the current direction the entity is moving in.
+     *
+     * @param direction the direction to set
      */
-	public char getDirection() {
-		return direction;
-	}
-
-
+    public void setDirection(char direction) {
+        this.direction = direction;
+    }
 
     /**
-     * @param direction the movement direction to set
+     * Gets the X velocity of the entity.
+     *
+     * @return the X velocity
      */
-	public void setDirection(char direction) {
-		this.direction = direction;
-	}
-
-
+    public int getVelocityX() {
+        return velocityX;
+    }
 
     /**
-     * @return the current horizontal velocity
+     * Sets the X velocity of the entity.
+     *
+     * @param velocityX the X velocity to set
      */
-	public int getVelocityX() {
-		return velocityX;
-	}
-
-
+    public void setVelocityX(int velocityX) {
+        this.velocityX = velocityX;
+    }
 
     /**
-     * @param velocityX the horizontal velocity to set
+     * Gets the Y velocity of the entity.
+     *
+     * @return the Y velocity
      */
-	public void setVelocityX(int velocityX) {
-		this.velocityX = velocityX;
-	}
-
-
-
-/**
-     * @return the current vertical velocity
-     */
-	public int getVelocityY() {
-		return velocityY;
-	}
+    public int getVelocityY() {
+        return velocityY;
+    }
 
     /**
-     * @param velocityY the vertical velocity to set
+     * Sets the Y velocity of the entity.
+     *
+     * @param velocityY the Y velocity to set
      */
-	public void setVelocityY(int velocityY) {
-		this.velocityY = velocityY;
-	}
-	
-    /**
-     * @return the game map reference
-     */
-	public Map getMap() {
-		return this.map;
-	}
+    public void setVelocityY(int velocityY) {
+        this.velocityY = velocityY;
+    }
 
     /**
-     * @param map the game map to set
+     * Gets the map the entity is interacting with.
+     *
+     * @return the map
      */
-	public void setMap(Map map) {
-		this.map = map;
-	}
+    public Map getMap() {
+        return this.map;
+    }
+
+    /**
+     * Sets the map the entity is interacting with.
+     *
+     * @param map the map to set
+     */
+    public void setMap(Map map) {
+        this.map = map;
+    }
+
+    /**
+     * Gets the speed of the entity.
+     *
+     * @return the speed
+     */
+    public int getSpeed() {
+        return speed;
+    }
+
+    /**
+     * Sets the speed of the entity.
+     *
+     * @param speed the speed to set
+     */
+    public void setSpeed(int speed) {
+        this.speed = speed;
+    }
 }
