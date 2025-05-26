@@ -154,10 +154,8 @@ public abstract class Ghost extends MobileEntity{
 
     @Override
     public void updateVelocity(){
-        int s = 12;
-        int speedFactor = super.getMap().getLevel() >= 10 ? s/2 : s;
-        int tileSize = super.getMap().getTileSize();
-        int step = Math.round(tileSize/speedFactor);
+        int speedFactor = super.getMap().getLevel() >= 10 ? 2 : 1;
+        int step = 2*speedFactor;
 
         alignToGrid(step);
 
