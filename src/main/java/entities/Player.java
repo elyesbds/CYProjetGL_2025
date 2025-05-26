@@ -121,9 +121,7 @@ public class Player extends MobileEntity{
      */
     @Override
     public void updateVelocity(){
-        int s = 8;
-        int tileSize = super.getMap().getTileSize();
-        int step = Math.round(tileSize/s);
+        int step = 4;
 
         alignToGrid(step);
 
